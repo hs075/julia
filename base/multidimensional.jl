@@ -334,9 +334,12 @@ module IteratorsMD
         iterfirst, iterfirst
     end
     @inline function iterate(iter::CartesianIndices, state)
+        # If we increment before the condition check, we run the
+        # risk of an integer overflow.
+        idxend = map(last, iter.indices)
+        all(map(>=, state.I, idxend)) && return nothing
         nextstate = CartesianIndex(inc(state.I, first(iter).I, last(iter).I))
-        nextstate.I[end] > last(iter.indices[end]) && return nothing
-        nextstate, nextstate
+        return nextstate, nextstate
     end
 
     # increment & carry
