@@ -95,6 +95,10 @@ module IteratorsMD
     # access to index tuple
     Tuple(index::CartesianIndex) = index.I
 
+    # equality
+    import Base: ==
+    ==(a::CartesianIndex{N}, b::CartesianIndex{N}) where N = a.I == b.I
+
     # zeros and ones
     zero(::CartesianIndex{N}) where {N} = zero(CartesianIndex{N})
     zero(::Type{CartesianIndex{N}}) where {N} = CartesianIndex(ntuple(x -> 0, Val(N)))
@@ -335,9 +339,8 @@ module IteratorsMD
     end
     @inline function iterate(iter::CartesianIndices, state)
         # If we increment before the condition check, we run the
-        # risk of an integer overflow.
-        idxend = map(last, iter.indices)
-        all(map(>=, state.I, idxend)) && return nothing
+        # risk of an integer overflow. This intentionally allows for invalid state.
+        state == last(iter) && return nothing
         nextstate = CartesianIndex(inc(state.I, first(iter).I, last(iter).I))
         return nextstate, nextstate
     end
